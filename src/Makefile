@@ -28,6 +28,8 @@ LIBSSLFLAGS = $(shell pkg-config --cflags openssl)
 LIBSSLLIBS = $(shell pkg-config --libs openssl)
 LIBSECRETFLAGS =$(shell pkg-config --cflags libsecret-1)
 LIBSECRETLIBS =$(shell pkg-config --libs libsecret-1)
+LIBAPPINDICATORFLAGS = $(shell pkg-config --cflags appindicator3-0.1)
+LIBAPPINDICATORLIBS = $(shell pkg-config --libs appindicator3-0.1)
 
 CFLAGS += -std=gnu99 -O2 -Wall -Iinc -Wno-deprecated-declarations \
 		  $(DEFS) \
@@ -36,14 +38,16 @@ CFLAGS += -std=gnu99 -O2 -Wall -Iinc -Wno-deprecated-declarations \
 		  $(LIBCONFIGFLAGS) \
 		  $(LIBSOUPFLAGS) \
 		  $(LIBSSLFLAGS) \
-		  $(LIBSECRETFLAGS)
+		  $(LIBSECRETFLAGS) \
+		  $(LIBAPPINDICATORFLAGS)
 
 LDFLAGS += $(DBGFLAGS) \
 		   $(GTK3LIBS) \
 		   $(LIBCONFIGLIBS) \
 		   $(LIBSOUPLIBS) \
 		   $(LIBSSLLIBS) \
-		   $(LIBSECRETLIBS)
+		   $(LIBSECRETLIBS) \
+		   $(LIBAPPINDICATORLIBS)
 
 ifeq ($(OS),Windows_NT)
 LDFLAGS += -mwindows

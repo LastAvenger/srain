@@ -25,6 +25,7 @@
  */
 
 #include <gtk/gtk.h>
+#include <libappindicator/app-indicator.h>
 
 #include "sui/sui.h"
 #include "meta.h"
@@ -41,7 +42,7 @@
 struct _SuiApplication {
     GtkApplication parent;
 
-    GtkStatusIcon *tray_icon;
+    AppIndicator *tray_icon;
     // GtkPopover can not shown at outside of GtkWindow on X11,
     // so we need another traditional menu as tray icon menu.
     GtkMenu *menu;
@@ -82,9 +83,7 @@ static void on_activate_prefs(GSimpleAction *action, GVariant  *parameter,
         gpointer user_data);
 static void on_activate_exit(GSimpleAction *action, GVariant  *parameter,
         gpointer user_data);
-static void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data);
-static void tray_icon_on_popup_menu(GtkStatusIcon *status_icon, guint button,
-       guint activate_time, gpointer user_data);
+/*static void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data);*/
 
 /*****************************************************************************
  * GObject functions
@@ -336,8 +335,8 @@ void sui_application_send_notification(SuiApplication *self,
 }
 
 void sui_application_highlight_tray_icon(SuiApplication *self, bool highlight){
-    gtk_status_icon_set_from_icon_name(self->tray_icon,
-            highlight ? "srain-red": PACKAGE);
+    app_indicator_set_status(self->tray_icon,
+            highlight ? APP_INDICATOR_STATUS_ATTENTION : APP_INDICATOR_STATUS_ACTIVE);
 }
 
 SuiApplication* sui_application_get_instance(){
@@ -444,13 +443,16 @@ static void on_startup(SuiApplication *self){
     GtkBuilder *builder;
 
     builder = gtk_builder_new_from_resource("/im/srain/Srain/app.glade");
-    self->tray_icon = GTK_STATUS_ICON(g_object_ref_sink(
-                gtk_builder_get_object(builder, "tray_icon")));
+    self->tray_icon = app_indicator_new("im.srain.Srain", "im.srain.Srain",
+                APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
     self->menu = GTK_MENU(g_object_ref_sink(
             gtk_builder_get_object(builder, "menu")));
     self->popover_menu = GTK_POPOVER_MENU(g_object_ref_sink(
         gtk_builder_get_object(builder, "popover_menu")));
     g_object_unref(builder);
+
+    // Attach a attention icon
+    app_indicator_set_attention_icon_full(self->tray_icon, "im.srain.Srain-red", NULL);
 
     // Attach to any widget to connect to action
     gtk_menu_attach_to_widget(self->menu, GTK_WIDGET(self->popover_menu), NULL);
@@ -459,10 +461,8 @@ static void on_startup(SuiApplication *self){
     gtk_icon_theme_add_resource_path(gtk_icon_theme_get_default(),
             "/im/srain/Srain/icons");
 
-    g_signal_connect(self->tray_icon, "activate",
-            G_CALLBACK(tray_icon_on_click), self);
-    g_signal_connect(self->tray_icon, "popup-menu",
-            G_CALLBACK(tray_icon_on_popup_menu), self);
+    // Attach menu
+    app_indicator_set_menu(self->tray_icon, self->menu);
 
     ret = sui_theme_manager_apply(self->theme, self->cfg->theme);
     if (!RET_IS_OK(ret)){
@@ -567,7 +567,7 @@ static void on_activate_exit(GSimpleAction *action, GVariant  *parameter,
     sui_application_exit(self);
 }
 
-static void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data){
+/*static void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data){
     GList *wins;
     SuiApplication *self;
 
@@ -580,13 +580,4 @@ static void tray_icon_on_click(GtkStatusIcon *status_icon, gpointer user_data){
         win = lst->data;
         gtk_widget_set_visible(win, !gtk_widget_get_visible(win));
     }
-}
-
-static void tray_icon_on_popup_menu(GtkStatusIcon *status_icon, guint button,
-       guint activate_time, gpointer user_data){
-    SuiApplication *self;
-
-    self = user_data;
-
-    gtk_menu_popup(self->menu, NULL, NULL, NULL, NULL, button, activate_time);
-}
+}*/
