@@ -34,6 +34,9 @@ output_file=$3
 # gdbus
 gdbus=$prefix/bin/gdbus.exe
 
+# gspawn-win32-helper
+gspawn_win32_helper=$prefix/bin/gspawn-win32-helper.exe
+
 # srain
 cp -vf $srain_exe $prefix/bin/srain.exe # make DLLs of mingw64 have the highest priority
 get_dll $prefix/bin/srain.exe
@@ -46,6 +49,10 @@ mingw64_dlls+=$ret
 
 # gdbus
 get_dll $gdbus
+mingw64_dlls+=$ret
+
+# gspawn-win32-helper
+get_dll $gspawn_win32_helper
 mingw64_dlls+=$ret
 
 mingw64_dlls=$(echo $mingw64_dlls | tr ' ' '\n' | sort -u)
@@ -65,6 +72,7 @@ touch $dst_bin/srain.cfg
 echo 'Finished installing Srain'
 
 cp -rfv $gdbus $dst_bin/
+cp -rfv $gspawn_win32_helper $dst_bin/
 cp -rfv $mingw64_dlls $dst_bin/
 cp -rfv $prefix/lib/gio $dst_lib/
 cp -rfv $prefix/lib/gdk-pixbuf-2.0 $dst_lib/
